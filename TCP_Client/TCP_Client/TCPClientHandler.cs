@@ -44,9 +44,12 @@ namespace TCP_Client
         /// <summary>
         /// Reads TCP server response and store the packets if any
         /// </summary>
-        private static void ReadServerResponse()
+        private static List<byte[]> ReadServerResponse()
         {
-            byte[] buffer = new byte[17]; // Buffer to read each packet (total 17 bytes per packet)
+            List<byte[]> serverResponse = new List<byte[]>();
+
+            // Buffer to read each packet (total 17 bytes per packet)
+            byte[] buffer = new byte[17];
             int bytesRead;
 
             while ((bytesRead = _networkStream.Read(buffer, 0, buffer.Length)) > 0)
@@ -56,8 +59,10 @@ namespace TCP_Client
                 {
                     break;
                 }
-                _allPackets.Add(buffer);
+                serverResponse.Add(buffer);
             }
+
+            return serverResponse;
         }
 
         /// <summary>
