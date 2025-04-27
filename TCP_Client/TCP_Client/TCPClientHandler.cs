@@ -87,5 +87,24 @@ namespace TCP_Client
                 Sequence = sequence
             };
         }
+
+        /// <summary>
+        /// Process server response
+        /// </summary>
+        /// <param name="responsePackets">Response packets</param>
+        /// <returns>Parsed response packets</returns>
+        private static List<TCPServerPacketResponse> ProcessServerResponse(List<byte[]> responsePackets)
+        {
+            var tcpServerResponseList = new List<TCPServerPacketResponse>();
+
+            foreach (var responsePacket in responsePackets)
+            {
+                // parse each packet
+                var tcpServerResponse = ParseResponsePacket(responsePacket);
+                // add parsed result to final list
+                tcpServerResponseList.Add(tcpServerResponse);
+            }
+            return tcpServerResponseList;
+        }
     }
 }
