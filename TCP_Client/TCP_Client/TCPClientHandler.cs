@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Sockets;
+﻿using System.Net.Sockets;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace TCP_Client
 {
@@ -13,7 +9,48 @@ namespace TCP_Client
         private const string ServerAddress = "127.0.0.1"; // Localhost
         private static TcpClient _tcpClient;
         private static NetworkStream _networkStream;
-        private static List<byte[]> _allPackets = new List<byte[]>(); // To keep track of received sequences
+
+        public static void HandleTCPClient()
+        {
+            try
+            {
+                // Instantiate TCP Client
+                InstantiateTCPClient();
+
+                // Make get all packets request
+                SendRequest(1, 0);
+
+                // Get packets from server response
+                var serverResponsePackets = ReadServerResponse();
+
+                // Process server response
+                var parsedServerResponse = ProcessServerResponse(serverResponsePackets);
+
+                // Filter received sequences from parse server response
+                var receivedSequences = parsedServerResponse.Select(x => x.Sequence).ToList();
+
+                // Get missing packets
+                var missingPackets = RequestMissingPackets(receivedSequences);
+
+                if (missingPackets != null)
+                    parsedServerResponse.AddRange(missingPackets);
+
+                parsedServerResponse = parsedServerResponse.OrderBy(x => x.Sequence).ToList();
+
+                foreach (var serverResponse in parsedServerResponse)
+                {
+                    Console.WriteLine($"Received Packet - Symbol: {serverResponse.Symbol}, " +
+                        $"Buy/Sell: {Convert.ToChar(serverResponse.BuyOrSell)}, " +
+                        $"Quantity: {serverResponse.Quantity}, " +
+                        $"Price: {serverResponse.Price}, " +
+                        $"Sequence: {serverResponse.Sequence}");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("Something went wrong ! " + ex.Message);
+            }
+        }
 
         /// <summary>
         /// Instantiate TCP Client
@@ -55,11 +92,6 @@ namespace TCP_Client
 
             while ((bytesRead = _networkStream.Read(buffer, 0, buffer.Length)) > 0)
             {
-                // Ensure we received a full packet (17 bytes)
-                if (bytesRead == 0)
-                {
-                    break;
-                }
                 serverResponse.Add(buffer);
             }
 
@@ -126,6 +158,8 @@ namespace TCP_Client
             // Getting the maximum sequence number
             int highestReceivedSequence = receivedSequences.Max();
 
+            InstantiateTCPClient();
+            
             // Check for missing sequences (excluding the last one, which is never missing)
             for (int sequence = 1; sequence < highestReceivedSequence; sequence++)
             {
@@ -133,8 +167,9 @@ namespace TCP_Client
                 {
                     // Resend Packet Request
                     SendRequest(2, (byte)sequence);
-                    var serverResponse = ReadServerResponse();
-                    missingPackets.AddRange(serverResponse);
+                    var serverResponse = ReadSingleServerResponse();
+                    if(serverResponse != null)
+                    missingPackets.Add(serverResponse);
                 }
             }
 
