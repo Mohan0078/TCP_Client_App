@@ -145,5 +145,17 @@ namespace TCP_Client
             }
             return null;
         }
+
+        private static byte[] ReadSingleServerResponse()
+        {
+            byte[] buffer = new byte[17];
+            int bytesRead;
+
+            if ((bytesRead = _networkStream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+               return buffer;
+            }
+            return null;
+        }
     }
 }
