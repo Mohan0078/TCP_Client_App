@@ -59,5 +59,33 @@ namespace TCP_Client
                 _allPackets.Add(buffer);
             }
         }
+
+        /// <summary>
+        /// Parse response packet
+        /// </summary>
+        /// <param name="buffer">Buffer packet to parse</param>
+        /// <returns>Returns a parsed object</returns>
+        private static TCPServerPacketResponse ParseResponsePacket(byte[] buffer)
+        {
+            // Parse the response packet fields
+            string symbol = Encoding.ASCII.GetString(buffer, 0, 4);  // 4 bytes for the symbol
+            byte buySellIndicator = buffer[4];                        // 1 byte for the Buy/Sell Indicator
+            int quantity = BitConverter.ToInt32(buffer, 5);           // 4 bytes for Quantity (Big Endian)
+            int price = BitConverter.ToInt32(buffer, 9);              // 4 bytes for Price (Big Endian)
+            int sequence = BitConverter.ToInt32(buffer, 13);          // 4 bytes for Packet Sequence (Big Endian)
+
+            quantity = BitConverter.ToInt32(BitConverter.GetBytes(quantity).Reverse().ToArray(), 0);
+            price = BitConverter.ToInt32(BitConverter.GetBytes(price).Reverse().ToArray(), 0);
+            sequence = BitConverter.ToInt32(BitConverter.GetBytes(sequence).Reverse().ToArray(), 0);
+
+            return new TCPServerPacketResponse()
+            {
+                Symbol = symbol,
+                BuyOrSell = Convert.ToChar(buySellIndicator),
+                Quantity = quantity,
+                Price = price,
+                Sequence = sequence
+            };
+        }
     }
 }
