@@ -13,6 +13,7 @@ namespace TCP_Client
         private const string ServerAddress = "127.0.0.1"; // Localhost
         private static TcpClient _tcpClient;
         private static NetworkStream _networkStream;
+        private static List<byte[]> _allPackets = new List<byte[]>(); // To keep track of received sequences
 
         /// <summary>
         /// Instantiate TCP Client
@@ -38,6 +39,25 @@ namespace TCP_Client
             // Send the request
             _networkStream.Write(requestPayload, 0, requestPayload.Length);
             Console.WriteLine($"Sent request: CallType={callType}, ResendSeq={resendSeq}");
+        }
+
+        /// <summary>
+        /// Reads TCP server response and store the packets if any
+        /// </summary>
+        private static void ReadServerResponse()
+        {
+            byte[] buffer = new byte[17]; // Buffer to read each packet (total 17 bytes per packet)
+            int bytesRead;
+
+            while ((bytesRead = _networkStream.Read(buffer, 0, buffer.Length)) > 0)
+            {
+                // Ensure we received a full packet (17 bytes)
+                if (bytesRead == 0)
+                {
+                    break;
+                }
+                _allPackets.Add(buffer);
+            }
         }
     }
 }
