@@ -1,2 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
+﻿using TCP_Client;
+
+// calling the tcp client for handling the tcp request and response
+TCPClientHandler.HandleTCPClient();
