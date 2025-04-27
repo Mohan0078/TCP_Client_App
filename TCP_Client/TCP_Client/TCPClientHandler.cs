@@ -44,6 +44,7 @@ namespace TCP_Client
         /// <summary>
         /// Reads TCP server response and store the packets if any
         /// </summary>
+        /// <returns>List of packets received from server</returns>
         private static List<byte[]> ReadServerResponse()
         {
             List<byte[]> serverResponse = new List<byte[]>();
@@ -110,6 +111,39 @@ namespace TCP_Client
                 tcpServerResponseList.Add(tcpServerResponse);
             }
             return tcpServerResponseList;
+        }
+
+        /// <summary>
+        /// Check for missing packet sequences and request them
+        /// </summary>
+        /// <param name="receivedSequences">All received sequences</param>
+        /// <returns>Parsed missing packets list if found else returns null</returns>
+        private static List<TCPServerPacketResponse> RequestMissingPackets(List<int> receivedSequences)
+        {
+            // for storing missing packets
+            var missingPackets = new List<byte[]>();
+
+            // Getting the maximum sequence number
+            int highestReceivedSequence = receivedSequences.Max();
+
+            // Check for missing sequences (excluding the last one, which is never missing)
+            for (int sequence = 1; sequence < highestReceivedSequence; sequence++)
+            {
+                if (!receivedSequences.Contains(sequence))
+                {
+                    // Resend Packet Request
+                    SendRequest(2, (byte)sequence);
+                    var serverResponse = ReadServerResponse();
+                    missingPackets.AddRange(serverResponse);
+                }
+            }
+
+            if(missingPackets.Count > 0)
+            {
+                var parsedServerResponse = ProcessServerResponse(missingPackets);
+                return parsedServerResponse;
+            }
+            return null;
         }
     }
 }
