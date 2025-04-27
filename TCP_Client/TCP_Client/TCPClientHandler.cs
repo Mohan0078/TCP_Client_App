@@ -180,7 +180,10 @@ namespace TCP_Client
             }
             return null;
         }
-
+        /// <summary>
+        /// Read single server response
+        /// </summary>
+        /// <returns></returns>
         private static byte[] ReadSingleServerResponse()
         {
             byte[] buffer = new byte[17];
