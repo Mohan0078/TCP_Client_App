@@ -1,5 +1,9 @@
-﻿using System.Net.Sockets;
+﻿using Newtonsoft.Json;
+using System;
+using System.Net.Sockets;
 using System.Text;
+using System.Xml;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace TCP_Client
 {
@@ -37,6 +41,8 @@ namespace TCP_Client
 
                 parsedServerResponse = parsedServerResponse.OrderBy(x => x.Sequence).ToList();
 
+                Console.WriteLine("\t\tList of received packets");
+                Console.WriteLine("===============================================================");
                 foreach (var serverResponse in parsedServerResponse)
                 {
                     Console.WriteLine($"Received Packet - Symbol: {serverResponse.Symbol}, " +
@@ -45,6 +51,16 @@ namespace TCP_Client
                         $"Price: {serverResponse.Price}, " +
                         $"Sequence: {serverResponse.Sequence}");
                 }
+
+                Console.WriteLine("Generating a json file for server response....");
+                GenerateJSONFile(parsedServerResponse);
+                
+                Console.WriteLine("Closing the tcp client connection...");
+                _tcpClient.Close();
+                Console.WriteLine("Connection closed");
+
+                Console.WriteLine("Press any key to stop running the application");
+                Console.ReadLine();
             }
             catch (Exception ex)
             {
@@ -194,6 +210,13 @@ namespace TCP_Client
                return buffer;
             }
             return null;
+        }
+
+        private static void GenerateJSONFile(List<TCPServerPacketResponse> tcpServerPacketResponses)
+        {
+            string jsonString = JsonConvert.SerializeObject(tcpServerPacketResponses, Formatting.Indented);
+
+            File.WriteAllText("tcp_server_response.json", jsonString);
         }
     }
 }

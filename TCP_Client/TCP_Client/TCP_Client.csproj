@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="6.0.1" />
+    <PackageReference Include="System.Security.Permissions" Version="6.0.1" />
+  </ItemGroup>
+
 </Project>
